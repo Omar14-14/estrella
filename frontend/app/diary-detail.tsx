@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, SafeAreaView, KeyboardAvoidingView,
-  Platform, Alert, ActivityIndicator,
+  View, Text, TextInput,
+  StyleSheet, KeyboardAvoidingView,
+  Platform, Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Colors } from '../src/constants/colors';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Layout } from '../src/constants/layout';
 import { useDiary } from '../src/hooks/useDiary';
+import { AppHeader, Screen, SoftCard } from '../src/components/ui';
+import { useTheme } from '../src/theme/ThemeProvider';
 
 export default function DiaryDetailScreen() {
   const { noteId } = useLocalSearchParams<{ noteId?: string }>();
   const { notes, create, update } = useDiary();
+  const { theme } = useTheme();
 
   const isNew = !noteId;
   const existing = noteId ? notes.find(n => n.id === noteId) : null;
@@ -67,60 +70,58 @@ export default function DiaryDetailScreen() {
   }, [dirty]);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleBack} style={styles.headerBtn}>
-            <Text style={styles.headerAction}>Volver</Text>
-          </TouchableOpacity>
+        <AppHeader
+          title={isNew ? 'Nueva nota' : 'Editar nota'}
+          subtitle={dirty ? 'sin guardar' : 'diario'}
+          onLeftPress={handleBack}
+          rightLabel="Guardar"
+          onRightPress={handleSave}
+          rightLoading={saving}
+        />
 
-          <Text style={styles.headerTitle}>{isNew ? 'Nueva nota' : 'Editar nota'}</Text>
+        <Animated.View style={styles.editorWrap} entering={FadeInUp.duration(360)}>
+          <SoftCard style={styles.editor} elevated>
+            <TextInput
+              style={[styles.titleInput, { color: theme.colors.text }]}
+              value={title}
+              onChangeText={handleTitleChange}
+              placeholder="Titulo"
+              placeholderTextColor={theme.colors.textMuted}
+              returnKeyType="next"
+              onSubmitEditing={() => contentRef.current?.focus()}
+              blurOnSubmit={false}
+              maxLength={100}
+            />
 
-          <TouchableOpacity onPress={handleSave} style={styles.headerBtn} disabled={saving}>
-            {saving
-              ? <ActivityIndicator size="small" color={Colors.primary} />
-              : <Text style={[styles.headerAction, styles.primaryAction]}>Guardar</Text>
-            }
-          </TouchableOpacity>
-        </View>
+            <Text style={[styles.dateLabel, { color: theme.colors.primary }]}>
+              {existing
+                ? `Editado ${new Date(existing.updatedAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}`
+                : `Hoy, ${new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}`
+              }
+            </Text>
 
-        <View style={styles.editor}>
-          <TextInput
-            style={styles.titleInput}
-            value={title}
-            onChangeText={handleTitleChange}
-            placeholder="Titulo"
-            placeholderTextColor={Colors.textMuted}
-            returnKeyType="next"
-            onSubmitEditing={() => contentRef.current?.focus()}
-            blurOnSubmit={false}
-            maxLength={100}
-          />
+            <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
 
-          <Text style={styles.dateLabel}>
-            {existing
-              ? `Editado ${new Date(existing.updatedAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}`
-              : `Hoy, ${new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}`
-            }
-          </Text>
-
-          <TextInput
-            ref={contentRef}
-            style={styles.contentInput}
-            value={content}
-            onChangeText={handleContentChange}
-            placeholder="Escribe aqui..."
-            placeholderTextColor={Colors.textMuted}
-            multiline
-            textAlignVertical="top"
-            autoFocus={isNew}
-          />
-        </View>
+            <TextInput
+              ref={contentRef}
+              style={[styles.contentInput, { color: theme.colors.text }]}
+              value={content}
+              onChangeText={handleContentChange}
+              placeholder="Escribe aqui..."
+              placeholderTextColor={theme.colors.textMuted}
+              multiline
+              textAlignVertical="top"
+              autoFocus={isNew}
+            />
+          </SoftCard>
+        </Animated.View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
@@ -128,65 +129,30 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  safe: {
+  editorWrap: {
     flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Layout.spacing.lg,
-    paddingVertical: Layout.spacing.md,
-    backgroundColor: Colors.surface + 'ee',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
-  },
-  headerBtn: {
-    minWidth: 76,
-  },
-  headerAction: {
-    color: Colors.textMuted,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  primaryAction: {
-    color: Colors.primary,
-    textAlign: 'right',
-  },
-  headerTitle: {
-    color: Colors.text,
-    fontSize: 17,
-    fontWeight: '700',
+    padding: Layout.spacing.lg,
   },
   editor: {
     flex: 1,
-    margin: Layout.spacing.lg,
     padding: Layout.spacing.lg,
-    backgroundColor: Colors.surface,
-    borderRadius: Layout.borderRadius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
-    elevation: 2,
   },
   titleInput: {
-    color: Colors.text,
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 25,
+    fontWeight: '900',
     paddingVertical: Layout.spacing.sm,
   },
   dateLabel: {
-    color: Colors.textMuted,
     fontSize: 12,
+    marginBottom: Layout.spacing.md,
+    fontWeight: '800',
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
     marginBottom: Layout.spacing.md,
   },
   contentInput: {
     flex: 1,
-    color: Colors.text,
     fontSize: 16,
     lineHeight: 24,
   },

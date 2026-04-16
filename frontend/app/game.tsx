@@ -4,15 +4,16 @@ import {
   StyleSheet, StatusBar,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Colors } from '../src/constants/colors';
 import { useGameLoop } from '../src/hooks/useGameLoop';
 import { GameCanvas } from '../src/components/game/GameCanvas';
 import { GameHUD } from '../src/components/game/GameHUD';
 import { GameOverlay } from '../src/components/game/GameOverlay';
+import { useTheme } from '../src/theme/ThemeProvider';
 
 export default function GameScreen() {
   const { gameState, start, jump, restart } = useGameLoop();
   const { status, score, hiScore } = gameState;
+  const { theme } = useTheme();
 
   const handleTap = useCallback(() => {
     if (status === 'running') jump();
@@ -24,7 +25,7 @@ export default function GameScreen() {
 
   return (
     <TouchableWithoutFeedback onPress={handleTap}>
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <StatusBar hidden />
 
         {/* Renderizado del juego */}
@@ -52,6 +53,5 @@ export default function GameScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
 });

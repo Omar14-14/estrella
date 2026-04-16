@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors } from '../../constants/colors';
 import { Layout } from '../../constants/layout';
+import { useTheme } from '../../theme/ThemeProvider';
 
 interface Props {
   score: number;
@@ -9,15 +9,17 @@ interface Props {
 }
 
 export function GameHUD({ score, hiScore }: Props) {
+  const { theme } = useTheme();
+
   return (
     <View style={styles.hud} pointerEvents="none">
-      <View style={styles.block}>
-        <Text style={styles.label}>PUNTOS</Text>
-        <Text style={styles.value}>{String(score).padStart(5, '0')}</Text>
+      <View style={[styles.block, { backgroundColor: theme.colors.surfaceGlass, borderColor: theme.colors.border }, theme.shadow.soft]}>
+        <Text style={[styles.label, { color: theme.colors.textMuted }]}>PUNTOS</Text>
+        <Text style={[styles.value, { color: theme.colors.text }]}>{String(score).padStart(5, '0')}</Text>
       </View>
-      <View style={styles.block}>
-        <Text style={styles.label}>RECORD</Text>
-        <Text style={[styles.value, { color: Colors.primary }]}>
+      <View style={[styles.block, { backgroundColor: theme.colors.surfaceGlass, borderColor: theme.colors.border }, theme.shadow.soft]}>
+        <Text style={[styles.label, { color: theme.colors.textMuted }]}>RECORD</Text>
+        <Text style={[styles.value, { color: theme.colors.primary }]}>
           {String(hiScore).padStart(5, '0')}
         </Text>
       </View>
@@ -38,23 +40,19 @@ const styles = StyleSheet.create({
   block: {
     alignItems: 'center',
     gap: 2,
-    backgroundColor: Colors.surface + 'd9',
     borderRadius: Layout.borderRadius.md,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
     paddingHorizontal: Layout.spacing.md,
     paddingVertical: Layout.spacing.sm,
   },
   label: {
-    color: Colors.textMuted,
     fontSize: 10,
     letterSpacing: 1.5,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   value: {
-    color: Colors.text,
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '900',
     fontFamily: 'monospace',
     letterSpacing: 1.5,
   },

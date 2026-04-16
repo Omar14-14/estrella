@@ -6,7 +6,7 @@ import {
   PanResponder,
   LayoutChangeEvent,
 } from 'react-native';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../theme/ThemeProvider';
 import { CellData } from '../../utils/wordSearchGenerator';
 
 interface Props {
@@ -23,21 +23,20 @@ interface Props {
   onNavigate: (route: string) => void;
 }
 
-// Colores por ruta
-const ROUTE_COLORS: Record<string, string> = {
-  '/diary': Colors.accent,
-  '/game': Colors.primary,
-  '/music': Colors.accentAlt,
-  '/gallery': Colors.success,
-};
-
 export function WordSearchGrid({
   grid, gridSize, cellSize,
   isSelected, isFound, isFlashing, getFoundRoute,
   onStart, onExtend, onEnd, onNavigate,
 }: Props) {
+  const { theme } = useTheme();
   const containerRef = useRef<View>(null);
   const offsetRef    = useRef({ x: 0, y: 0 });
+  const routeColors: Record<string, string> = {
+    '/diary': theme.colors.accent,
+    '/game': theme.colors.primary,
+    '/music': theme.colors.accentAlt,
+    '/gallery': theme.colors.success,
+  };
 
   const getCellFromTouch = useCallback((px: number, py: number): CellData | null => {
     const col = Math.floor((px - offsetRef.current.x) / cellSize);
@@ -88,7 +87,7 @@ export function WordSearchGrid({
             const found     = isFound(r, c);
             const flashing  = isFlashing(r, c);
             const route     = getFoundRoute(r, c);
-            const color     = route ? ROUTE_COLORS[route] : Colors.primary;
+            const color     = route ? routeColors[route] : theme.colors.primary;
 
             return (
               <View
@@ -96,7 +95,14 @@ export function WordSearchGrid({
                 style={[
                   styles.cell,
                   { width: cellSize, height: cellSize },
-                  selected  && styles.cellSelected,
+                  {
+                    backgroundColor: theme.colors.surfaceGlass,
+                    borderColor: theme.colors.border,
+                  },
+                  selected  && {
+                    backgroundColor: theme.colors.primarySoft,
+                    borderColor: theme.colors.primary,
+                  },
                   found     && { backgroundColor: color + '22', borderColor: color + '55' },
                   flashing  && { backgroundColor: color + '55' },
                 ]}
@@ -104,8 +110,9 @@ export function WordSearchGrid({
                 <Text
                   style={[
                     styles.letter,
+                    { color: theme.colors.text },
                     { fontSize: cellSize * 0.38 },
-                    selected && { color: Colors.primary, fontWeight: '700' },
+                    selected && { color: theme.colors.primary, fontWeight: '900' },
                     found    && { color: color, fontWeight: '700' },
                   ]}
                 >
@@ -135,16 +142,10 @@ const styles = StyleSheet.create({
   cell: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.surface,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
-  },
-  cellSelected: {
-    backgroundColor: Colors.primary + '18',
-    borderColor: Colors.primary,
   },
   letter: {
-    color: Colors.text,
     fontFamily: 'monospace',
+    fontWeight: '700',
   },
 });

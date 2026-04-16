@@ -1,19 +1,23 @@
 import { View, Text, TouchableOpacity, StyleSheet, Vibration } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
+import Animated, { FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useAuth } from '../src/hooks/useAuth';
-import { Colors } from '../src/constants/colors';
-import { Layout } from '../src/constants/layout';
+import { Screen, SoftCard, ThemeToggle } from '../src/components/ui';
+import { useTheme } from '../src/theme/ThemeProvider';
+import { usePushNotifications } from '../src/hooks/usePushNotifications';
 
-const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
+const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'];
 const PIN_LENGTH = 4;
 
 export default function PinScreen() {
   const [pin, setPin] = useState('');
   const { login, loading, error } = useAuth();
+  const { theme } = useTheme();
+  const { register } = usePushNotifications();
 
   const handleKey = async (key: string) => {
-    if (key === '⌫') {
+    if (key === 'del') {
       setPin(p => p.slice(0, -1));
       return;
     }
@@ -24,6 +28,7 @@ export default function PinScreen() {
     if (next.length === PIN_LENGTH) {
       const ok = await login(next);
       if (ok) {
+        void register();
         router.replace('/wordsearch');
       } else {
         Vibration.vibrate(300);
@@ -33,64 +38,116 @@ export default function PinScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Estrella</Text>
-        <Text style={styles.subtitle}>Acceso privado</Text>
+    <Screen contentStyle={styles.container}>
+      <View style={styles.toggleWrap}>
+        <ThemeToggle />
       </View>
 
-      <View style={styles.dots}>
-        {Array.from({ length: PIN_LENGTH }).map((_, i) => (
-          <View key={i} style={[styles.dot, i < pin.length && styles.dotFilled]} />
-        ))}
-      </View>
+      <Animated.View style={styles.header} entering={FadeInDown.duration(420)}>
+        <View style={[styles.badge, { backgroundColor: theme.colors.surfaceGlass, borderColor: theme.colors.border }]}>
+          <Text style={[styles.badgeText, { color: theme.colors.primary }]}>privado</Text>
+        </View>
+        <Text style={[styles.title, { color: theme.colors.text }]}>Estrella</Text>
+        <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>un rinconcito solo para ti</Text>
+      </Animated.View>
 
-      <Text style={[styles.message, !!error && styles.error]}>
-        {error ? 'PIN incorrecto' : 'Ingresa el PIN para continuar'}
-      </Text>
+      <SoftCard style={styles.pinCard} elevated>
+        <Animated.View style={styles.dots} entering={ZoomIn.delay(100).duration(380)}>
+          {Array.from({ length: PIN_LENGTH }).map((_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.dot,
+                {
+                  borderColor: theme.colors.borderStrong,
+                  backgroundColor: theme.colors.surfaceAlt,
+                },
+                i < pin.length && {
+                  backgroundColor: theme.colors.primary,
+                  borderColor: theme.colors.primary,
+                  transform: [{ scale: 1.08 }],
+                },
+              ]}
+            />
+          ))}
+        </Animated.View>
 
-      <View style={styles.keyboard}>
+        <Text style={[styles.message, { color: error ? theme.colors.error : theme.colors.textMuted }]}>
+          {error ? 'PIN incorrecto' : 'Ingresa el PIN para continuar'}
+        </Text>
+      </SoftCard>
+
+      <Animated.View style={styles.keyboard} entering={FadeInUp.delay(120).duration(420)}>
         {KEYS.map((key, i) => (
           <TouchableOpacity
             key={i}
-            style={[styles.key, key === '' && styles.keyEmpty]}
+            style={[
+              styles.key,
+              {
+                backgroundColor: theme.colors.surfaceGlass,
+                borderColor: theme.colors.border,
+              },
+              theme.shadow.soft,
+              key === '' && styles.keyEmpty,
+            ]}
             onPress={() => handleKey(key)}
             disabled={loading || key === ''}
             activeOpacity={0.72}
           >
-            <Text style={styles.keyText}>{key}</Text>
+            <Text style={[styles.keyText, { color: theme.colors.text }]}>
+              {key === 'del' ? '<' : key}
+            </Text>
           </TouchableOpacity>
         ))}
-      </View>
-    </View>
+      </Animated.View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Layout.spacing.xl,
-    gap: Layout.spacing.xl,
+    paddingHorizontal: 32,
+    gap: 28,
+  },
+  toggleWrap: {
+    position: 'absolute',
+    top: 18,
+    right: 18,
+    zIndex: 5,
   },
   header: {
     alignItems: 'center',
-    gap: Layout.spacing.xs,
+    gap: 7,
+  },
+  badge: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
   },
   title: {
-    color: Colors.text,
-    fontSize: 38,
-    fontWeight: '700',
-    letterSpacing: 0.2,
+    fontSize: 44,
+    fontWeight: '900',
   },
   subtitle: {
-    color: Colors.textMuted,
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 1.8,
-    textTransform: 'uppercase',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  pinCard: {
+    width: '100%',
+    maxWidth: 320,
+    padding: 24,
+    alignItems: 'center',
+    gap: 16,
   },
   dots: {
     flexDirection: 'row',
@@ -101,21 +158,11 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-  },
-  dotFilled: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
   },
   message: {
-    color: Colors.textMuted,
     fontSize: 13,
+    fontWeight: '700',
     minHeight: 18,
-  },
-  error: {
-    color: Colors.error,
-    fontWeight: '600',
   },
   keyboard: {
     flexDirection: 'row',
@@ -127,17 +174,10 @@ const styles = StyleSheet.create({
   key: {
     width: 66,
     height: 66,
-    borderRadius: 33,
-    backgroundColor: Colors.surface,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    elevation: 3,
   },
   keyEmpty: {
     backgroundColor: 'transparent',
@@ -146,8 +186,7 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   keyText: {
-    color: Colors.text,
     fontSize: 22,
-    fontWeight: '500',
+    fontWeight: '800',
   },
 });

@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Colors } from '../../constants/colors';
 import { Layout } from '../../constants/layout';
+import { useTheme } from '../../theme/ThemeProvider';
 
 interface Props {
   datesWithTrack: Set<string>;
@@ -21,6 +21,7 @@ function toKey(y: number, m: number, d: number) {
 }
 
 export function MusicCalendar({ datesWithTrack, selectedDate, onSelectDate }: Props) {
+  const { theme } = useTheme();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
@@ -45,20 +46,26 @@ export function MusicCalendar({ datesWithTrack, selectedDate, onSelectDate }: Pr
   while (cells.length % 7 !== 0) cells.push(null);
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.colors.surfaceGlass, borderColor: theme.colors.border },
+        theme.shadow.soft,
+      ]}
+    >
       <View style={styles.nav}>
-        <TouchableOpacity onPress={prevMonth} style={styles.navBtn}>
-          <Text style={styles.navArrow}>‹</Text>
+        <TouchableOpacity onPress={prevMonth} style={[styles.navBtn, { backgroundColor: theme.colors.surfaceAlt }]}>
+          <Text style={[styles.navArrow, { color: theme.colors.primary }]}>{'<'}</Text>
         </TouchableOpacity>
-        <Text style={styles.monthTitle}>{MONTHS[month]} {year}</Text>
-        <TouchableOpacity onPress={nextMonth} style={styles.navBtn}>
-          <Text style={styles.navArrow}>›</Text>
+        <Text style={[styles.monthTitle, { color: theme.colors.text }]}>{MONTHS[month]} {year}</Text>
+        <TouchableOpacity onPress={nextMonth} style={[styles.navBtn, { backgroundColor: theme.colors.surfaceAlt }]}>
+          <Text style={[styles.navArrow, { color: theme.colors.primary }]}>{'>'}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.weekRow}>
         {DAYS.map(d => (
-          <Text key={d} style={styles.dayHeader}>{d}</Text>
+          <Text key={d} style={[styles.dayHeader, { color: theme.colors.textMuted }]}>{d}</Text>
         ))}
       </View>
 
@@ -80,22 +87,22 @@ export function MusicCalendar({ datesWithTrack, selectedDate, onSelectDate }: Pr
               key={key}
               style={[
                 styles.cell,
-                isToday && styles.cellToday,
-                isSelected && styles.cellSelected,
+                isToday && { borderColor: theme.colors.primary, borderWidth: StyleSheet.hairlineWidth },
+                isSelected && { backgroundColor: theme.colors.primary },
               ]}
               onPress={() => hasTrack && onSelectDate(key)}
               activeOpacity={hasTrack ? 0.72 : 1}
             >
               <Text style={[
                 styles.dayText,
-                isSelected && styles.dayTextSelected,
-                isToday && !isSelected && styles.dayTextToday,
-                !hasTrack && styles.dayTextMuted,
+                { color: hasTrack ? theme.colors.text : theme.colors.textMuted },
+                isSelected && { color: theme.colors.textOnPrimary, fontWeight: '900' },
+                isToday && !isSelected && { color: theme.colors.primary, fontWeight: '900' },
               ]}>
                 {day}
               </Text>
               {hasTrack && (
-                <View style={[styles.dot, isSelected && styles.dotSelected]} />
+                <View style={[styles.dot, { backgroundColor: isSelected ? theme.colors.textOnPrimary : theme.colors.accentAlt }]} />
               )}
             </TouchableOpacity>
           );
@@ -109,16 +116,9 @@ const CELL = 44;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.surface,
     borderRadius: Layout.borderRadius.md,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
     padding: Layout.spacing.md,
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
-    elevation: 2,
   },
   nav: {
     flexDirection: 'row',
@@ -130,19 +130,17 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
   },
   navArrow: {
-    color: Colors.primary,
-    fontSize: 24,
-    lineHeight: 28,
+    fontSize: 18,
+    lineHeight: 22,
+    fontWeight: '900',
   },
   monthTitle: {
-    color: Colors.text,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   weekRow: {
     flexDirection: 'row',
@@ -151,9 +149,8 @@ const styles = StyleSheet.create({
   dayHeader: {
     width: CELL,
     textAlign: 'center',
-    color: Colors.textMuted,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   grid: {
     flexDirection: 'row',
@@ -166,36 +163,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: CELL / 2,
   },
-  cellToday: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.primary,
-  },
-  cellSelected: {
-    backgroundColor: Colors.primary,
-  },
   dayText: {
-    color: Colors.text,
     fontSize: 14,
-  },
-  dayTextSelected: {
-    color: '#fff',
-    fontWeight: '700',
-  },
-  dayTextToday: {
-    color: Colors.primary,
-    fontWeight: '700',
-  },
-  dayTextMuted: {
-    color: Colors.textMuted,
   },
   dot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.accentAlt,
     marginTop: 2,
-  },
-  dotSelected: {
-    backgroundColor: '#fff',
   },
 });

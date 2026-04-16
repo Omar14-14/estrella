@@ -1,10 +1,10 @@
 import React, { useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { Colors } from '../../constants/colors';
 import { Layout } from '../../constants/layout';
 import { PlayerState } from '../../hooks/useAudioPlayer';
 import { MusicTrack } from '../../types';
+import { useTheme } from '../../theme/ThemeProvider';
 
 interface Props {
   track: MusicTrack;
@@ -23,6 +23,7 @@ function formatTime(ms: number): string {
 }
 
 export function MusicPlayer({ track, state, position, duration, onToggle, onSeek, onStop }: Props) {
+  const { theme } = useTheme();
   const progress = duration > 0 ? position / duration : 0;
 
   const handleSeekBar = useCallback((evt: any) => {
@@ -35,39 +36,56 @@ export function MusicPlayer({ track, state, position, duration, onToggle, onSeek
   const isPlaying = state === 'playing';
 
   return (
-    <Animated.View style={styles.container} entering={FadeInUp.duration(350)}>
+    <Animated.View
+      style={[
+        styles.container,
+        { backgroundColor: theme.colors.surfaceGlass, borderColor: theme.colors.border },
+        theme.shadow.floating,
+      ]}
+      entering={FadeInUp.duration(350)}
+    >
       <View style={styles.info}>
-        <View style={[styles.albumMark, isPlaying && styles.albumMarkActive]} />
+        <View
+          style={[
+            styles.albumMark,
+            {
+              backgroundColor: isPlaying ? theme.colors.primarySoft : theme.colors.surfaceAlt,
+              borderColor: isPlaying ? theme.colors.primary : theme.colors.border,
+            },
+          ]}
+        >
+          <View style={[styles.albumDot, { backgroundColor: theme.colors.primary }]} />
+        </View>
         <View style={styles.meta}>
-          <Text style={styles.trackTitle} numberOfLines={1}>{track.title}</Text>
-          <Text style={styles.trackArtist} numberOfLines={1}>{track.artist}</Text>
+          <Text style={[styles.trackTitle, { color: theme.colors.text }]} numberOfLines={1}>{track.title}</Text>
+          <Text style={[styles.trackArtist, { color: theme.colors.textMuted }]} numberOfLines={1}>{track.artist}</Text>
         </View>
         <TouchableOpacity onPress={onStop} style={styles.closeBtn}>
-          <Text style={styles.closeText}>Cerrar</Text>
+          <Text style={[styles.closeText, { color: theme.colors.textMuted }]}>Cerrar</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.seekRow}>
-        <Text style={styles.time}>{formatTime(position)}</Text>
+        <Text style={[styles.time, { color: theme.colors.textMuted }]}>{formatTime(position)}</Text>
         <TouchableOpacity
           style={styles.seekTrack}
           onPress={handleSeekBar}
           activeOpacity={1}
         >
-          <View style={styles.seekBase} />
-          <View style={[styles.seekFill, { width: `${progress * 100}%` }]} />
-          <View style={[styles.seekThumb, { left: `${progress * 100}%` }]} />
+          <View style={[styles.seekBase, { backgroundColor: theme.colors.border }]} />
+          <View style={[styles.seekFill, { width: `${progress * 100}%`, backgroundColor: theme.colors.primary }]} />
+          <View style={[styles.seekThumb, { left: `${progress * 100}%`, backgroundColor: theme.colors.primary }]} />
         </TouchableOpacity>
-        <Text style={styles.time}>{formatTime(duration)}</Text>
+        <Text style={[styles.time, { color: theme.colors.textMuted }]}>{formatTime(duration)}</Text>
       </View>
 
       <TouchableOpacity
         onPress={onToggle}
-        style={styles.playBtn}
+        style={[styles.playBtn, { backgroundColor: theme.colors.primary }, theme.shadow.glow]}
         disabled={isLoading}
         activeOpacity={0.82}
       >
-        <Text style={styles.playText}>
+        <Text style={[styles.playText, { color: theme.colors.textOnPrimary }]}>
           {isLoading ? 'Cargando' : isPlaying ? 'Pausar' : 'Reproducir'}
         </Text>
       </TouchableOpacity>
@@ -77,17 +95,11 @@ export function MusicPlayer({ track, state, position, duration, onToggle, onSeek
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.surface,
-    borderRadius: Layout.borderRadius.md,
+    borderRadius: Layout.borderRadius.lg,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
     padding: Layout.spacing.lg,
     gap: Layout.spacing.md,
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 3,
+    overflow: 'hidden',
   },
   info: {
     flexDirection: 'row',
@@ -95,38 +107,37 @@ const styles = StyleSheet.create({
     gap: Layout.spacing.md,
   },
   albumMark: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.surfaceAlt,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  albumMarkActive: {
-    backgroundColor: Colors.primary + '18',
-    borderColor: Colors.primary,
+  albumDot: {
+    width: 13,
+    height: 13,
+    borderRadius: 7,
   },
   meta: {
     flex: 1,
     gap: 2,
   },
   trackTitle: {
-    color: Colors.text,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   trackArtist: {
-    color: Colors.textMuted,
     fontSize: 13,
+    fontWeight: '600',
   },
   closeBtn: {
     paddingVertical: 8,
     paddingHorizontal: 4,
   },
   closeText: {
-    color: Colors.textMuted,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '800',
   },
   seekRow: {
     flexDirection: 'row',
@@ -134,10 +145,10 @@ const styles = StyleSheet.create({
     gap: Layout.spacing.sm,
   },
   time: {
-    color: Colors.textMuted,
     fontSize: 11,
     width: 38,
     textAlign: 'center',
+    fontWeight: '700',
   },
   seekTrack: {
     flex: 1,
@@ -145,40 +156,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   seekBase: {
-    height: 5,
-    backgroundColor: Colors.border,
+    height: 6,
     borderRadius: 3,
   },
   seekFill: {
     position: 'absolute',
-    height: 5,
-    backgroundColor: Colors.primary,
+    height: 6,
     borderRadius: 3,
   },
   seekThumb: {
     position: 'absolute',
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: Colors.primary,
-    top: 5,
-    marginLeft: -7,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    top: 4,
+    marginLeft: -8,
   },
   playBtn: {
     alignSelf: 'center',
-    backgroundColor: Colors.primary,
     paddingHorizontal: Layout.spacing.xl,
     paddingVertical: 13,
     borderRadius: 22,
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 4,
   },
   playText: {
-    color: '#fff',
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '900',
   },
 });

@@ -1,22 +1,24 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity,
-  StyleSheet, SafeAreaView, ScrollView,
+  View, Text,
+  StyleSheet, ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import { Colors } from '../src/constants/colors';
 import { Layout } from '../src/constants/layout';
 import { getTrackByDate, getDatesWithTrack } from '../src/constants/music';
 import { useAudioPlayer } from '../src/hooks/useAudioPlayer';
 import { MusicCalendar } from '../src/components/music/MusicCalendar';
 import { MusicPlayer } from '../src/components/music/MusicPlayer';
+import { AppHeader, Screen, SoftCard } from '../src/components/ui';
+import { useTheme } from '../src/theme/ThemeProvider';
 
 const datesWithTrack = getDatesWithTrack();
 
 export default function MusicScreen() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { track, state, position, duration, load, togglePlay, seek, stop } = useAudioPlayer();
+  const { theme } = useTheme();
 
   const handleSelectDate = useCallback((date: string) => {
     const t = getTrackByDate(date);
@@ -31,22 +33,24 @@ export default function MusicScreen() {
   }, [stop]);
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => { handleStop(); router.back(); }} style={styles.headerBtn}>
-          <Text style={styles.headerAction}>Volver</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Musica</Text>
-        <View style={styles.headerBtn} />
-      </View>
+    <Screen>
+      <AppHeader
+        title="Musica"
+        subtitle={track ? 'reproduciendo' : 'calendario'}
+        onLeftPress={() => { handleStop(); router.back(); }}
+      />
 
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View style={styles.intro} entering={FadeIn.duration(350)}>
-          <Text style={styles.introTitle}>Calendario</Text>
-          <Text style={styles.introText}>Selecciona un dia marcado para reproducir una pista.</Text>
+        <Animated.View entering={FadeIn.duration(350)}>
+          <SoftCard style={styles.intro}>
+            <Text style={[styles.introTitle, { color: theme.colors.text }]}>Calendario</Text>
+            <Text style={[styles.introText, { color: theme.colors.textMuted }]}>
+              Selecciona un dia marcado para reproducir una pista.
+            </Text>
+          </SoftCard>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(80).duration(350)}>
@@ -58,8 +62,8 @@ export default function MusicScreen() {
         </Animated.View>
 
         <Animated.View style={styles.legend} entering={FadeInDown.delay(150).duration(350)}>
-          <View style={styles.legendDot} />
-          <Text style={styles.legendText}>Dia con pista</Text>
+          <View style={[styles.legendDot, { backgroundColor: theme.colors.accentAlt }]} />
+          <Text style={[styles.legendText, { color: theme.colors.textMuted }]}>Dia con pista</Text>
         </Animated.View>
 
         {track && (
@@ -78,59 +82,33 @@ export default function MusicScreen() {
 
         {datesWithTrack.size === 0 && (
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>No hay pistas configuradas</Text>
-            <Text style={styles.emptyHint}>Agrega tracks en src/constants/music.ts</Text>
+            <Text style={[styles.emptyText, { color: theme.colors.textMuted }]}>No hay pistas configuradas</Text>
+            <Text style={[styles.emptyHint, { color: theme.colors.textMuted }]}>Agrega tracks en src/constants/music.ts</Text>
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Layout.spacing.lg,
-    paddingVertical: Layout.spacing.md,
-    backgroundColor: Colors.surface + 'ee',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
-  },
-  headerBtn: {
-    minWidth: 76,
-  },
-  headerAction: {
-    color: Colors.textMuted,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  title: {
-    color: Colors.text,
-    fontSize: 17,
-    fontWeight: '700',
-  },
   scroll: {
     padding: Layout.spacing.lg,
     gap: Layout.spacing.lg,
+    paddingBottom: Layout.spacing.xxl,
   },
   intro: {
     gap: Layout.spacing.xs,
+    padding: Layout.spacing.lg,
   },
   introTitle: {
-    color: Colors.text,
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   introText: {
-    color: Colors.textMuted,
     fontSize: 14,
     lineHeight: 20,
+    fontWeight: '600',
   },
   legend: {
     flexDirection: 'row',
@@ -142,12 +120,10 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: Colors.accentAlt,
   },
   legendText: {
-    color: Colors.textMuted,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '800',
   },
   empty: {
     alignItems: 'center',
@@ -155,11 +131,10 @@ const styles = StyleSheet.create({
     paddingTop: Layout.spacing.xl,
   },
   emptyText: {
-    color: Colors.textMuted,
     fontSize: 14,
+    fontWeight: '700',
   },
   emptyHint: {
-    color: Colors.textMuted,
     fontSize: 12,
     fontFamily: 'monospace',
   },

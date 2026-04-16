@@ -6,6 +6,8 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import diaryRoutes from './routes/diary.routes';
 import galleryRoutes from './routes/gallery.routes';
+import notificationsRoutes from './routes/notifications.routes';
+import { startDailyNotificationScheduler } from './services/notification.service';
 
 dotenv.config();
 
@@ -20,6 +22,7 @@ app.use(express.json({ limit: '25mb' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/diary', diaryRoutes);
 app.use('/api/gallery', galleryRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -28,5 +31,7 @@ app.get('/health', (_req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
+
+startDailyNotificationScheduler();
 
 export default app;

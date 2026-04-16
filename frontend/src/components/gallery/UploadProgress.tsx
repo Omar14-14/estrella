@@ -1,19 +1,20 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../theme/ThemeProvider';
 
 interface Props {
   progress: number;
 }
 
 export function UploadProgress({ progress }: Props) {
+  const { theme } = useTheme();
   const pct = Math.round(progress * 100);
   return (
-    <View style={styles.container}>
-      <View style={styles.track}>
-        <View style={[styles.fill, { width: `${pct}%` }]} />
+    <View style={[styles.container, { backgroundColor: theme.colors.surfaceGlass, borderBottomColor: theme.colors.border }]}>
+      <View style={[styles.track, { backgroundColor: theme.colors.border }]}>
+        <View style={[styles.fill, { width: `${pct}%`, backgroundColor: theme.colors.primary }]} />
       </View>
-      <Text style={styles.label}>Subiendo {pct}%</Text>
+      <Text style={[styles.label, { color: theme.colors.textMuted }]}>Subiendo {pct}%</Text>
     </View>
   );
 }
@@ -24,25 +25,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 7,
     alignItems: 'center',
-    backgroundColor: Colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
   },
   track: {
     width: '100%',
     height: 5,
-    backgroundColor: Colors.border,
     borderRadius: 3,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    backgroundColor: Colors.primary,
     borderRadius: 3,
   },
   label: {
-    color: Colors.textMuted,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '800',
   },
 });

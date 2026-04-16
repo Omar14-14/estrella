@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
-import { Colors } from '../../constants/colors';
 import { Layout } from '../../constants/layout';
 import { GameStatus } from '../../types/game';
+import { useTheme } from '../../theme/ThemeProvider';
+import { SoftButton, ThemeToggle } from '../ui';
 
 interface Props {
   status: GameStatus;
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function GameOverlay({ status, score, hiScore, onStart, onRestart, onBack }: Props) {
+  const { theme } = useTheme();
   if (status === 'running') return null;
 
   const isIdle = status === 'idle';
@@ -22,46 +24,54 @@ export function GameOverlay({ status, score, hiScore, onStart, onRestart, onBack
   const isNew = isDead && score > 0 && score >= hiScore;
 
   return (
-    <Animated.View style={styles.overlay} entering={FadeIn.duration(250)}>
-      <Animated.View style={styles.card} entering={ZoomIn.duration(300)}>
+    <Animated.View style={[styles.overlay, { backgroundColor: theme.colors.overlay }]} entering={FadeIn.duration(250)}>
+      <View style={styles.toggleWrap}>
+        <ThemeToggle />
+      </View>
+      <Animated.View
+        style={[
+          styles.card,
+          { backgroundColor: theme.colors.surfaceGlass, borderColor: theme.colors.border },
+          theme.shadow.floating,
+        ]}
+        entering={ZoomIn.duration(300)}
+      >
         {isIdle && (
           <>
-            <Text style={styles.title}>Juego</Text>
-            <Text style={styles.subtitle}>Toca la pantalla para saltar.</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>Juego</Text>
+            <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>Toca la pantalla para saltar.</Text>
           </>
         )}
 
         {isDead && (
           <>
-            <Text style={styles.title}>Fin del juego</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>Fin del juego</Text>
             <View style={styles.scoreRow}>
               <View style={styles.scoreBlock}>
-                <Text style={styles.scoreLabel}>PUNTOS</Text>
-                <Text style={styles.scoreValue}>{score}</Text>
+                <Text style={[styles.scoreLabel, { color: theme.colors.textMuted }]}>PUNTOS</Text>
+                <Text style={[styles.scoreValue, { color: theme.colors.text }]}>{score}</Text>
               </View>
-              <View style={styles.dividerV} />
+              <View style={[styles.dividerV, { backgroundColor: theme.colors.border }]} />
               <View style={styles.scoreBlock}>
-                <Text style={styles.scoreLabel}>RECORD</Text>
-                <Text style={[styles.scoreValue, { color: Colors.primary }]}>{hiScore}</Text>
+                <Text style={[styles.scoreLabel, { color: theme.colors.textMuted }]}>RECORD</Text>
+                <Text style={[styles.scoreValue, { color: theme.colors.primary }]}>{hiScore}</Text>
               </View>
             </View>
-            {isNew && <Text style={styles.newRecord}>Nuevo record</Text>}
+            {isNew && <Text style={[styles.newRecord, { color: theme.colors.primary }]}>Nuevo record</Text>}
           </>
         )}
 
         <TouchableOpacity
-          style={styles.primaryBtn}
+          style={[styles.primaryBtn, { backgroundColor: theme.colors.primary }, theme.shadow.glow]}
           onPress={isIdle ? onStart : onRestart}
           activeOpacity={0.82}
         >
-          <Text style={styles.primaryBtnText}>
+          <Text style={[styles.primaryBtnText, { color: theme.colors.textOnPrimary }]}>
             {isIdle ? 'Empezar' : 'Reintentar'}
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={onBack} style={styles.secondaryBtn}>
-          <Text style={styles.secondaryBtnText}>Volver</Text>
-        </TouchableOpacity>
+        <SoftButton label="Volver" variant="ghost" onPress={onBack} />
       </Animated.View>
     </Animated.View>
   );
@@ -70,35 +80,32 @@ export function GameOverlay({ status, score, hiScore, onStart, onRestart, onBack
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(43, 36, 48, 0.18)',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  toggleWrap: {
+    position: 'absolute',
+    top: 44,
+    right: 18,
+  },
   card: {
-    backgroundColor: Colors.surface + 'f5',
     borderRadius: Layout.borderRadius.lg,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
     padding: Layout.spacing.xl,
     alignItems: 'center',
     gap: Layout.spacing.lg,
-    width: 286,
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 18 },
-    shadowOpacity: 0.12,
-    shadowRadius: 28,
-    elevation: 8,
+    width: 296,
+    overflow: 'hidden',
   },
   title: {
-    color: Colors.text,
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 23,
+    fontWeight: '900',
   },
   subtitle: {
-    color: Colors.textMuted,
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
+    fontWeight: '600',
   },
   scoreRow: {
     flexDirection: 'row',
@@ -110,51 +117,32 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   scoreLabel: {
-    color: Colors.textMuted,
     fontSize: 10,
     letterSpacing: 1.5,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   scoreValue: {
-    color: Colors.text,
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '900',
     fontFamily: 'monospace',
   },
   dividerV: {
     width: StyleSheet.hairlineWidth,
     height: 40,
-    backgroundColor: Colors.border,
   },
   newRecord: {
-    color: Colors.primary,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   primaryBtn: {
-    backgroundColor: Colors.primary,
     paddingHorizontal: Layout.spacing.xxl,
     paddingVertical: Layout.spacing.md,
     borderRadius: 22,
     width: '100%',
     alignItems: 'center',
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 4,
   },
   primaryBtnText: {
-    color: '#fff',
     fontSize: 16,
-    fontWeight: '700',
-  },
-  secondaryBtn: {
-    paddingVertical: Layout.spacing.sm,
-  },
-  secondaryBtnText: {
-    color: Colors.textMuted,
-    fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '900',
   },
 });

@@ -1,10 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   useWindowDimensions,
-  SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -17,18 +16,13 @@ import Animated, {
   FadeIn,
   FadeInDown,
 } from 'react-native-reanimated';
-import { Colors } from '../src/constants/colors';
 import { Layout } from '../src/constants/layout';
 import { WORDS } from '../src/constants/wordSearch';
 import { useWordSearch } from '../src/hooks/useWordSearch';
 import { WordSearchGrid } from '../src/components/wordsearch/WordSearchGrid';
-
-const ROUTE_COLORS: Record<string, string> = {
-  '/diary': Colors.accent,
-  '/game': Colors.primary,
-  '/music': Colors.accentAlt,
-  '/gallery': Colors.success,
-};
+import { Screen, SoftCard, ThemeToggle } from '../src/components/ui';
+import { useTheme } from '../src/theme/ThemeProvider';
+import { usePushNotifications } from '../src/hooks/usePushNotifications';
 
 const ROUTE_LABELS: Record<string, string> = {
   '/diary': 'DIARIO',
@@ -48,19 +42,27 @@ function WordPill({
   found: boolean;
   onPress: (route: string) => void;
 }) {
-  const color = ROUTE_COLORS[route];
+  const { theme } = useTheme();
+  const routeColors: Record<string, string> = {
+    '/diary': theme.colors.accent,
+    '/game': theme.colors.primary,
+    '/music': theme.colors.accentAlt,
+    '/gallery': theme.colors.success,
+  };
+  const color = routeColors[route];
   return (
     <TouchableOpacity
       style={[
         styles.pill,
         found
           ? { backgroundColor: color + '18', borderColor: color }
-          : { backgroundColor: Colors.surface, borderColor: Colors.border },
+          : { backgroundColor: theme.colors.surfaceGlass, borderColor: theme.colors.border },
+        theme.shadow.soft,
       ]}
       onPress={() => onPress(route)}
       activeOpacity={0.75}
     >
-      <Text style={[styles.pillText, { color: found ? color : Colors.textMuted }]}>
+      <Text style={[styles.pillText, { color: found ? color : theme.colors.textMuted }]}>
         {ROUTE_LABELS[route]}
       </Text>
     </TouchableOpacity>
@@ -69,6 +71,8 @@ function WordPill({
 
 export default function WordSearchScreen() {
   const { width } = useWindowDimensions();
+  const { theme } = useTheme();
+  const { register } = usePushNotifications();
   const PADDING = Layout.spacing.lg * 2;
   const CELL_SIZE = Math.floor((width - PADDING) / 10);
 
@@ -110,21 +114,30 @@ export default function WordSearchScreen() {
 
   const allFound = found.size === WORDS.length;
 
+  useEffect(() => {
+    void register();
+  }, [register]);
+
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen>
       <Animated.View style={styles.container} entering={FadeIn.duration(500)}>
+        <View style={styles.toggleWrap}>
+          <ThemeToggle />
+        </View>
         <Animated.View style={styles.header} entering={FadeInDown.duration(400)}>
-          <Animated.Text style={[styles.star, starStyle]}>Estrella</Animated.Text>
-          <Text style={styles.title}>
+          <Animated.Text style={[styles.star, { color: theme.colors.text }, starStyle]}>
+            Estrella
+          </Animated.Text>
+          <Text style={[styles.title, { color: theme.colors.textMuted }]}>
             {allFound ? 'Todo encontrado' : `${found.size} de ${WORDS.length}`}
           </Text>
         </Animated.View>
 
-        <Animated.Text style={[styles.hint, hintStyle]}>
+        <Animated.Text style={[styles.hint, { color: theme.colors.textMuted }, hintStyle]}>
           {hint}
         </Animated.Text>
 
-        <View style={styles.gridWrapper}>
+        <SoftCard style={styles.gridWrapper} elevated>
           <WordSearchGrid
             grid={grid}
             gridSize={gridSize}
@@ -138,7 +151,7 @@ export default function WordSearchScreen() {
             onEnd={handleEnd}
             onNavigate={handleNavigate}
           />
-        </View>
+        </SoftCard>
 
         <Animated.View style={styles.pills} entering={FadeInDown.delay(200).duration(400)}>
           {WORDS.map(({ word, route }) => (
@@ -152,15 +165,11 @@ export default function WordSearchScreen() {
           ))}
         </Animated.View>
       </Animated.View>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
   container: {
     flex: 1,
     alignItems: 'center',
@@ -168,38 +177,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.spacing.lg,
     paddingVertical: Layout.spacing.lg,
   },
+  toggleWrap: {
+    position: 'absolute',
+    top: 18,
+    right: 18,
+    zIndex: 5,
+  },
   header: {
     alignItems: 'center',
     gap: 4,
   },
   star: {
     fontSize: 30,
-    color: Colors.text,
-    fontWeight: '700',
-    letterSpacing: 0.2,
+    fontWeight: '900',
   },
   title: {
     fontSize: 13,
-    color: Colors.textMuted,
     letterSpacing: 3,
     textTransform: 'uppercase',
+    fontWeight: '800',
   },
   hint: {
     fontSize: 13,
-    color: Colors.textMuted,
     letterSpacing: 1,
+    fontWeight: '700',
   },
   gridWrapper: {
     borderRadius: Layout.borderRadius.lg,
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    elevation: 4,
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
+    padding: 6,
   },
   pills: {
     flexDirection: 'row',
@@ -213,11 +218,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 2,
   },
   pillText: {
     fontSize: 11,

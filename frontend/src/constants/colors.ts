@@ -1,14 +1,61 @@
-export const Colors = {
+export type ThemeMode = 'light' | 'dark';
+
+export const LightColors = {
   background: '#fff7fb',
+  backgroundSoft: '#fff1f7',
   surface: '#ffffff',
   surfaceAlt: '#fff0f7',
-  primary: '#d85f8f',
+  surfaceElevated: '#fffafd',
+  surfaceGlass: 'rgba(255, 255, 255, 0.86)',
+  primary: '#e66b9b',
   primaryDark: '#a83e68',
-  accent: '#8e7cc3',
-  accentAlt: '#4aa3a2',
+  primarySoft: '#ffd6e8',
+  accent: '#a98be8',
+  accentSoft: '#ece2ff',
+  accentAlt: '#56b8b6',
+  mint: '#a6decf',
+  peach: '#ffc6a8',
+  butter: '#ffe59a',
+  lavender: '#d8c8ff',
   text: '#2b2430',
-  textMuted: '#8a7d89',
-  border: '#eadde6',
+  textMuted: '#8b7b88',
+  textOnPrimary: '#ffffff',
+  border: '#efdce8',
+  borderStrong: '#e6c7da',
+  overlay: 'rgba(43, 36, 48, 0.26)',
+  shadow: '#ad5277',
   error: '#d84f64',
   success: '#5fa77b',
 } as const;
+
+export const DarkColors = {
+  background: '#19131f',
+  backgroundSoft: '#221829',
+  surface: '#2a2031',
+  surfaceAlt: '#35263c',
+  surfaceElevated: '#3a2b43',
+  surfaceGlass: 'rgba(47, 36, 55, 0.88)',
+  primary: '#ff8fba',
+  primaryDark: '#f16b9e',
+  primarySoft: '#513044',
+  accent: '#c5a8ff',
+  accentSoft: '#3a2f52',
+  accentAlt: '#7ad4d1',
+  mint: '#7fcabb',
+  peach: '#ffb58f',
+  butter: '#ffe08a',
+  lavender: '#bfa8ff',
+  text: '#fff3f9',
+  textMuted: '#c7b5c5',
+  textOnPrimary: '#301420',
+  border: '#49384f',
+  borderStrong: '#61476a',
+  overlay: 'rgba(10, 7, 13, 0.52)',
+  shadow: '#07040a',
+  error: '#ff7b8c',
+  success: '#8bd7a8',
+} as const;
+
+export type AppColors = Record<keyof typeof LightColors, string>;
+
+export const Colors = LightColors;

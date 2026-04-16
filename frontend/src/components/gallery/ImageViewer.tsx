@@ -4,8 +4,8 @@ import {
   StyleSheet, Modal, Dimensions, Alert,
   StatusBar,
 } from 'react-native';
-import { Colors } from '../../constants/colors';
 import { GalleryImage } from '../../types';
+import { useTheme } from '../../theme/ThemeProvider';
 
 const { width, height } = Dimensions.get('window');
 
@@ -16,6 +16,7 @@ interface Props {
 }
 
 export function ImageViewer({ image, onClose, onDelete }: Props) {
+  const { theme } = useTheme();
   const confirmDelete = useCallback(() => {
     if (!image) return;
     Alert.alert(
@@ -37,7 +38,7 @@ export function ImageViewer({ image, onClose, onDelete }: Props) {
       onRequestClose={onClose}
     >
       <StatusBar hidden />
-      <View style={styles.overlay}>
+      <View style={[styles.overlay, { backgroundColor: theme.isDark ? 'rgba(12, 8, 16, 0.97)' : 'rgba(43, 36, 48, 0.92)' }]}>
         {image && (
           <Image
             source={{ uri: image.url }}
@@ -47,11 +48,17 @@ export function ImageViewer({ image, onClose, onDelete }: Props) {
         )}
 
         <View style={styles.topBar}>
-          <TouchableOpacity onPress={onClose} style={styles.controlBtn}>
-            <Text style={styles.controlText}>Cerrar</Text>
+          <TouchableOpacity
+            onPress={onClose}
+            style={[styles.controlBtn, { backgroundColor: theme.colors.surfaceGlass, borderColor: theme.colors.border }]}
+          >
+            <Text style={[styles.controlText, { color: theme.colors.text }]}>Cerrar</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={confirmDelete} style={styles.controlBtn}>
-            <Text style={[styles.controlText, styles.deleteText]}>Eliminar</Text>
+          <TouchableOpacity
+            onPress={confirmDelete}
+            style={[styles.controlBtn, { backgroundColor: theme.colors.surfaceGlass, borderColor: theme.colors.border }]}
+          >
+            <Text style={[styles.controlText, { color: theme.colors.error }]}>Eliminar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -62,7 +69,6 @@ export function ImageViewer({ image, onClose, onDelete }: Props) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(24, 20, 28, 0.96)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -83,17 +89,13 @@ const styles = StyleSheet.create({
     minWidth: 82,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.92)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 14,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   controlText: {
-    color: Colors.text,
     fontSize: 14,
-    fontWeight: '700',
-  },
-  deleteText: {
-    color: Colors.error,
+    fontWeight: '800',
   },
 });
