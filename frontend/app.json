@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Estrella",
+    "slug": "estrella",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "estrella",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#fff7fb"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.estrella.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#fff7fb"
+      },
+      "package": "com.estrella.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        { "photosPermission": "Permite acceder a tus fotos para la galería." }
+      ],
+      [
+        "expo-av",
+        { "microphonePermission": false }
+      ]
+    ]
+  }
+}
